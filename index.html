@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Mónica Lilian Nutrición · Propuesta de diseño (v4, arquitectura de pestañas)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas: #FBF8F4;
+    --surface: #F6EFE3;
+    --line: #E8DFCF;
+    --ink: #35281F;
+    --ink-soft: #6E5A4D;
+
+    /* Paleta A (exacta) */
+    --rosa: #F2AAAE;
+    --lavanda: #D0AAD1;
+    --crema: #FFE7C1;
+    --azul: #D0E9E9;
+    --durazno: #F4C09D;
+
+    --azul-wash: #EAF5F5;
+    --azul-mid: #A9D5D5;
+    --azul-deep: #5A9A9A;
+    --durazno-deep: #E8A87C;
+    --lavanda-deep: #B98BBB;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --max-w: 1180px;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    --accent: var(--azul-mid);
+    --accent-strong: var(--azul-deep);
+    --frame-a: var(--crema);
+    --frame-b: var(--azul);
+    --wash: var(--azul-wash);
+  }
+  body[data-view="mamas"]{
+    --accent: var(--durazno);
+    --accent-strong: var(--durazno-deep);
+    --frame-a: var(--crema);
+    --frame-b: var(--durazno);
+    --wash: #FDF1E4;
+  }
+  body[data-view="adultos"]{
+    --accent: var(--lavanda);
+    --accent-strong: var(--lavanda-deep);
+    --frame-a: var(--azul);
+    --frame-b: var(--lavanda);
+    --wash: #F4ECF4;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0; background: var(--canvas); color: var(--ink);
+    font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  img,svg{ display:block; max-width:100%; }
+  a{ color: inherit; }
+  .wrap{ max-width: var(--max-w); margin: 0 auto; padding: 0 32px; }
+  h1,h2,h3,h4{ font-family: var(--font-display); font-weight: 500; margin: 0; color: var(--ink); }
+  em{ font-style: italic; font-weight: 400; }
+  p{ margin: 0; }
+  :focus-visible{ outline: 2px solid var(--azul-deep); outline-offset: 3px; }
+
+  /* ---------- Views ---------- */
+  .view{ display:none; }
+  .view.is-active{ display:block; animation: viewIn .35s ease both; }
+  @keyframes viewIn{ from{ opacity:0; transform: translateY(6px); } to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .view.is-active{ animation:none; } html{ scroll-behavior:auto; } }
+
+  /* ---------- Dots (motivo principal) ---------- */
+  .dot{
+    display:inline-block; width: 10px; height: 10px; border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(53,40,31,0.12); flex-shrink:0;
+  }
+  .d-rosa{ background: var(--rosa); } .d-lavanda{ background: var(--lavanda); }
+  .d-crema{ background: var(--crema); } .d-azul{ background: var(--azul-mid); } .d-durazno{ background: var(--durazno); }
+  .dots-row{ display:flex; gap: 10px; align-items:center; }
+  .dots-row .dot{ width: 9px; height: 9px; }
+  .dots-row.center{ justify-content:center; }
+  .dotgrid{
+    position:absolute; inset: -14px; z-index:0; pointer-events:none;
+    background-image: radial-gradient(var(--azul-mid) 1.7px, transparent 1.9px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(circle at 62% 42%, #000 18%, transparent 72%);
+    mask-image: radial-gradient(circle at 62% 42%, #000 18%, transparent 72%);
+  }
+  .float-dot{ position:absolute; border-radius:50%; z-index:2; box-shadow: inset 0 0 0 1px rgba(53,40,31,0.12); }
+
+  /* ---------- Nav ---------- */
+  .nav{
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(251,248,244,0.94); backdrop-filter: blur(6px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .25s ease, box-shadow .25s ease;
+  }
+  .nav.is-scrolled{ border-bottom-color: var(--azul-mid); box-shadow: 0 8px 24px -20px rgba(53,40,31,0.4); }
+  .nav .wrap{ display:flex; align-items:center; justify-content: space-between; height: 78px; gap: 24px; }
+  .nav-logo{
+    font-family: var(--font-display); font-size: 20px; font-weight: 500; letter-spacing: -0.01em;
+    white-space:nowrap; text-decoration:none; display:flex; align-items:center; gap: 10px; flex-shrink:0;
+  }
+  .nav-logo em{ font-style: italic; border-bottom: 2px solid var(--azul-mid); padding-bottom: 1px; }
+  .logo-slot{
+    display:inline-flex; align-items:center; justify-content:center;
+    border: 1.5px dashed rgba(53,40,31,0.35); border-radius: var(--radius-sm);
+    padding: 8px 16px; font-family: var(--font-body); font-size: 12px; font-weight: 500;
+    color: var(--ink-soft); white-space:nowrap;
+  }
+  .nav-links{ display:flex; gap: 22px; list-style:none; margin:0; padding:0; align-items:center; }
+  .nav-links a{
+    display:inline-flex; align-items:center; gap: 8px;
+    text-decoration:none; font-size: 14px; font-weight: 500; color: var(--ink-soft);
+    padding: 6px 2px; border-bottom: 2px solid transparent; white-space: nowrap;
+    transition: color .2s ease, border-color .2s ease;
+  }
+  .nav-links a::before{
+    content:""; width: 7px; height: 7px; border-radius:50%; background: var(--accent);
+    box-shadow: inset 0 0 0 1px rgba(53,40,31,0.15); opacity: 0; transform: scale(.4);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .nav-links a:hover{ color: var(--ink); border-bottom-color: var(--azul-mid); }
+  .nav-links a[aria-current="page"]{ color: var(--ink); border-bottom-color: var(--accent-strong); }
+  .nav-links a[aria-current="page"]::before{ opacity:1; transform:none; }
+  .nav-links a.nav-cta{
+    border-bottom: none; padding: 10px 18px; border-radius: 8px;
+    background: var(--azul-mid); color: var(--ink); font-weight: 600;
+    transition: background .2s ease, transform .15s ease;
+  }
+  .nav-links a.nav-cta::before{ display:none; }
+  .nav-links a.nav-cta:hover{ background: var(--azul-deep); color: var(--canvas); transform: translateY(-1px); }
+  .nav-right{ display:flex; align-items:center; gap: 18px; flex-shrink:0; }
+  .nav-toggle{ display:none; background:none; border:none; width: 40px; height: 40px; cursor:pointer; }
+  .nav-toggle span{ display:block; width: 22px; height: 2px; background: var(--ink); margin: 5px auto; }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family: var(--font-body); font-size: 15px; font-weight: 600;
+    padding: 13px 24px; border-radius: var(--radius-sm);
+    text-decoration:none; cursor:pointer; border: 1.5px solid transparent;
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    white-space: nowrap;
+  }
+  .btn:hover{ transform: translateY(-1px); }
+  .btn-primary{ background: var(--accent); color: var(--ink); }
+  .btn-primary:hover{ box-shadow: inset 0 0 0 1.5px var(--accent-strong); }
+  .btn-outline{ border-color: var(--azul-deep); color: var(--ink); background: transparent; }
+  .btn-outline:hover{ background: var(--azul); }
+  .btn-ghost{ color: var(--ink-soft); font-size: 15px; font-weight: 500; text-decoration: none; padding: 8px 4px; }
+  .btn-ghost:hover{ color: var(--ink); }
+
+  /* ---------- Eyebrow / chips ---------- */
+  .eyebrow{
+    display:inline-flex; align-items:center; gap: 10px; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.02em; color: var(--ink-soft); margin-bottom: 16px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap: 8px; padding: 7px 14px; border-radius: 6px;
+    font-size: 13px; font-weight: 500; color: var(--ink);
+  }
+  .chip-rosa{ background: var(--rosa); } .chip-lavanda{ background: var(--lavanda); }
+  .chip-crema{ background: var(--crema); } .chip-azul{ background: var(--azul); } .chip-durazno{ background: var(--durazno); }
+  .chip-canvas{ background: var(--canvas); border: 1.5px solid var(--azul-mid); }
+
+  .section-head{ max-width: 660px; margin-bottom: 44px; }
+  .section-head h2{ font-size: 34px; line-height: 1.22; margin-top: 4px; }
+  .section-head p.lead{ margin-top: 16px; font-size: 16.5px; color: var(--ink-soft); line-height: 1.65; max-width: 56ch; }
+  section{ padding: 80px 0; }
+  section.on-wash{ background: var(--wash); }
+  section.on-azul{ background: var(--azul-wash); border-top: 1px solid var(--azul); border-bottom: 1px solid var(--azul); }
+
+  /* ---------- Photo placeholder ---------- */
+  .photo-frame{
+    position:relative; z-index:1; border-radius: var(--radius-md);
+    border: 1.5px dashed rgba(53,40,31,0.35);
+    background: linear-gradient(155deg, var(--frame-a) 0%, var(--frame-b) 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: 10px; color: var(--ink-soft); font-size: 13px; font-weight: 500; text-align:center; padding: 16px;
+  }
+  .photo-frame svg{ width: 30px; height: 30px; opacity: .55; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding: 64px 0 76px; }
+  .hero .wrap{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items:center; }
+  .hero h1{ font-size: 46px; line-height: 1.16; letter-spacing: -0.01em; max-width: 17ch; }
+  .hero p.lead{ margin-top: 22px; max-width: 48ch; font-size: 17px; color: var(--ink-soft); line-height: 1.65; }
+  .hero-ctas{ margin-top: 30px; display:flex; gap: 16px; flex-wrap: wrap; align-items:center; }
+  .hero-note{ margin-top: 18px; display:flex; align-items:center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+  .hero-note svg{ width: 16px; height: 16px; color: var(--azul-deep); flex-shrink:0; }
+  .hero-visual{ position: relative; padding: 14px; }
+  .hero-visual .photo-frame{ aspect-ratio: 4/5; max-width: 400px; margin: 0 auto; }
+
+  /* ---------- Section brand (wordmark del hero de cada vertiente) ---------- */
+  .section-brand{
+    display:inline-flex; align-items:center; gap: 10px;
+    font-family: var(--font-display); font-size: 23px; font-weight: 500;
+    color: var(--ink); margin-bottom: 18px;
+  }
+  .section-brand em{ font-style: italic; border-bottom: 2px solid var(--accent); padding-bottom: 1px; }
+
+  /* ---------- Paths (Elige tu camino) ---------- */
+  .paths{ display:grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .path-card{
+    position:relative; background: var(--canvas); border: 1.5px solid var(--azul-mid);
+    border-radius: var(--radius-md); padding: 40px 36px; display:flex; flex-direction:column; gap: 16px;
+    overflow:hidden;
+  }
+  .path-card::before{ content:""; position:absolute; left:0; right:0; top:0; height: 6px; }
+  .path-card.p-mamas::before{ background: var(--durazno); }
+  .path-card.p-adultos::before{ background: var(--lavanda); }
+  .path-card h3{ font-size: 28px; }
+  .path-card p{ font-size: 15.5px; color: var(--ink-soft); line-height: 1.6; }
+  .path-list{ list-style:none; padding:0; margin: 6px 0 12px; display:flex; flex-direction:column; gap: 10px; }
+  .path-list li{ display:flex; align-items:center; gap: 12px; font-size: 15px; }
+  .path-card .btn{ align-self:flex-start; margin-top:auto; }
+  .p-mamas .btn-primary{ background: var(--durazno); }
+  .p-mamas .btn-primary:hover{ box-shadow: inset 0 0 0 1.5px var(--durazno-deep); }
+  .p-adultos .btn-primary{ background: var(--lavanda); }
+  .p-adultos .btn-primary:hover{ box-shadow: inset 0 0 0 1.5px var(--lavanda-deep); }
+
+  /* ---------- Feature cards ---------- */
+  .feature-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .feature-card{ background: var(--canvas); border: 1.5px solid var(--azul-mid); border-radius: var(--radius-md); padding: 32px 28px; }
+  .feature-card .dots-row{ margin-bottom: 20px; }
+  .feature-card h3{ font-size: 21px; margin-bottom: 10px; }
+  .feature-card p{ font-size: 15px; color: var(--ink-soft); line-height: 1.6; }
+
+  /* ---------- Reasons ---------- */
+  .reasons-list{ max-width: 780px; }
+  .reason-item{ display:flex; gap: 18px; align-items:flex-start; padding: 22px 0; border-top: 1.5px solid var(--azul); }
+  .reason-item:last-child{ border-bottom: 1.5px solid var(--azul); }
+  .reason-item .dot{ width: 12px; height: 12px; margin-top: 8px; }
+  .reason-item p{ font-size: 19px; line-height: 1.5; color: var(--ink); }
+
+  /* ---------- Two-col offer cards (consultas) ---------- */
+  .offer-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .offer-card{ background: var(--canvas); border: 1.5px solid var(--azul-mid); border-radius: var(--radius-md); padding: 34px 32px; }
+  .offer-card .chip{ margin-bottom: 16px; }
+  .offer-card h3{ font-size: 24px; margin-bottom: 10px; }
+  .offer-card p{ font-size: 15.5px; color: var(--ink-soft); line-height: 1.6; }
+  .offer-card .path-list{ margin-top: 18px; margin-bottom: 0; }
+
+  /* ---------- Steps x5 ---------- */
+  .steps-5{ display:grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+  .step-slim{ padding-right: 8px; }
+  .step-slim .step-num{
+    width: 38px; height: 38px; border-radius: 50%; color: var(--ink);
+    font-size: 13px; font-weight: 700; display:flex; align-items:center; justify-content:center; margin-bottom: 16px;
+    box-shadow: inset 0 0 0 1px rgba(53,40,31,0.12);
+  }
+  .step-slim:nth-child(1) .step-num{ background: var(--azul); }
+  .step-slim:nth-child(2) .step-num{ background: var(--durazno); }
+  .step-slim:nth-child(3) .step-num{ background: var(--lavanda); }
+  .step-slim:nth-child(4) .step-num{ background: var(--crema); }
+  .step-slim:nth-child(5) .step-num{ background: var(--azul-mid); }
+  .step-slim h3{ font-size: 17px; margin-bottom: 8px; line-height:1.3; }
+  .step-slim p{ font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+
+  /* ---------- Talleres ---------- */
+  .workshop-banner{
+    background: var(--azul); border-radius: var(--radius-md); position:relative; overflow:hidden;
+    padding: 44px 40px; display:flex; justify-content:space-between; align-items:center; gap: 32px; flex-wrap:wrap;
+  }
+  .workshop-banner .chip{ margin-bottom: 14px; }
+  .workshop-banner h3{ font-size: 26px; margin-bottom: 10px; }
+  .workshop-banner p{ font-size: 15px; color: var(--ink-soft); max-width: 44ch; }
+  .workshop-modes{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .workshop-banner .btn-primary{ background: var(--canvas); }
+  .workshop-banner .btn-primary:hover{ box-shadow: inset 0 0 0 1.5px var(--azul-deep); }
+
+  /* ---------- Diabetes band (adultos) ---------- */
+  .diabetes-band{ display:grid; grid-template-columns: 0.8fr 1.2fr; gap: 48px; align-items:center; }
+  .diabetes-band .dots-big{ display:grid; grid-template-columns: repeat(5, 1fr); gap: 14px; max-width: 280px; }
+  .diabetes-band .dots-big .dot{ width: 100%; aspect-ratio:1; height:auto; }
+  .diabetes-band h2{ font-size: 32px; line-height:1.22; margin: 4px 0 14px; }
+  .diabetes-band p{ font-size: 16px; color: var(--ink-soft); line-height: 1.7; max-width: 56ch; }
+
+  /* ---------- CTA band ---------- */
+  .cta-band{ background: var(--azul); text-align:center; }
+  .cta-band h2{ font-size: 34px; max-width: 22ch; margin: 18px auto 0; }
+  .cta-band p{ margin: 16px auto 0; max-width: 48ch; color: var(--ink-soft); font-size: 16px; }
+  .cta-band .hero-ctas{ justify-content:center; }
+  .cta-band .btn-primary{ background: var(--canvas); }
+  .cta-band .btn-primary:hover{ box-shadow: inset 0 0 0 1.5px var(--azul-deep); }
+
+  /* ---------- Articles / Blog ---------- */
+  .articles-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 28px; }
+  .article-main .photo-frame{ aspect-ratio: 16/10; margin-bottom: 22px; }
+  .article-main h3{ font-size: 27px; line-height: 1.28; margin: 10px 0 12px; }
+  .article-main p{ font-size: 15.5px; color: var(--ink-soft); line-height: 1.6; max-width: 52ch; }
+  .article-secondary-list{ display:flex; flex-direction:column; gap: 26px; }
+  .article-secondary{ display:flex; gap: 16px; align-items:flex-start; }
+  .article-secondary .photo-frame{ width: 96px; height: 96px; flex-shrink:0; padding:8px; }
+  .article-secondary .photo-frame svg{ width:20px; height:20px; }
+  .article-secondary h4{ font-size: 17px; line-height:1.35; margin: 8px 0 6px; }
+  .article-secondary p{ font-size: 13.5px; color: var(--ink-soft); line-height:1.5; }
+  .read-more{ font-size: 14px; font-weight: 600; color: var(--ink); text-decoration:none; border-bottom: 2px solid var(--azul-mid); display:inline-block; margin-top: 14px; }
+
+  /* ---------- Collabs ---------- */
+  .collab-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .collab-card{ background: var(--canvas); border: 1.5px solid var(--azul-mid); border-radius: var(--radius-md); padding: 32px; display:flex; gap: 24px; align-items:flex-start; }
+  .collab-media{
+    width: 112px; height: 112px; flex-shrink:0; border: 1.5px dashed rgba(53,40,31,0.3); border-radius: var(--radius-sm);
+    display:flex; align-items:center; justify-content:center; text-align:center; padding: 8px;
+    font-size: 12px; font-weight: 500; color: var(--ink-soft); background: var(--azul-wash);
+  }
+  .collab-body .chip{ margin-bottom: 12px; }
+  .collab-body h3{ font-size: 23px; margin-bottom: 8px; }
+  .collab-body p{ font-size: 15px; color: var(--ink-soft); line-height: 1.6; }
+
+  /* ---------- Especialista ---------- */
+  .specialist{ display:grid; grid-template-columns: 0.7fr 1.3fr; gap: 48px; align-items:center; }
+  .specialist .photo-frame{ aspect-ratio: 1/1; border-radius: 50%; }
+  .specialist .credential{ font-size: 14px; color: var(--ink-soft); margin: 8px 0 18px; }
+  .specialist p.bio{ font-size: 16px; color: var(--ink-soft); line-height: 1.7; max-width: 60ch; }
+  .specialist-visual{ position:relative; padding: 14px; }
+
+  /* ---------- Testimonios ---------- */
+  .testimonials-empty{
+    border: 1.5px dashed var(--azul-deep); border-radius: var(--radius-md); background: var(--canvas);
+    padding: 36px; max-width: 720px; display:flex; gap: 18px; align-items:flex-start;
+  }
+  .testimonials-empty svg{ width: 26px; height: 26px; flex-shrink:0; margin-top:2px; color: var(--azul-deep); }
+  .testimonials-empty p{ font-size: 15px; color: var(--ink-soft); line-height: 1.65; }
+  .testimonials-empty p strong{ color: var(--ink); font-weight:600; }
+
+  /* ---------- Newsletter ---------- */
+  .newsletter{ background: var(--ink); color: var(--canvas); padding: 72px 0; }
+  .newsletter .wrap{ display:flex; justify-content:space-between; align-items:center; gap: 40px; flex-wrap:wrap; }
+  .newsletter h2{ color: var(--canvas); font-size: 30px; max-width: 16ch; margin-top: 14px; }
+  .newsletter p{ margin-top: 10px; color: #D9C9BC; font-size: 15px; max-width: 40ch; }
+  .newsletter-form{ display:flex; gap: 10px; flex-wrap:wrap; }
+  .newsletter-form input{
+    background: rgba(251,248,244,0.08); border: 1.5px solid rgba(251,248,244,0.25);
+    border-radius: var(--radius-sm); padding: 13px 16px; font-size: 15px;
+    color: var(--canvas); font-family: var(--font-body); min-width: 240px;
+  }
+  .newsletter-form input::placeholder{ color: rgba(251,248,244,0.55); }
+  .newsletter .btn-primary{ background: var(--azul); }
+  .newsletter .btn-primary:hover{ box-shadow: inset 0 0 0 1.5px var(--azul-mid); }
+
+  /* ---------- Redes ---------- */
+  .social-row{ display:flex; gap: 20px; align-items:center; flex-wrap:wrap; }
+  .social-link{
+    display:inline-flex; align-items:center; gap: 10px; text-decoration:none; color: var(--ink);
+    font-size: 15px; font-weight: 500; padding: 12px 18px; border: 1.5px solid var(--azul-mid); border-radius: var(--radius-sm);
+    transition: background .2s ease;
+  }
+  .social-link:hover{ background: var(--azul); }
+  .social-link svg{ width: 18px; height: 18px; color: var(--azul-deep); }
+
+  /* ---------- Footer ---------- */
+  footer{ padding: 52px 0 40px; }
+  footer .wrap{ display:flex; justify-content: space-between; align-items:flex-start; flex-wrap:wrap; gap: 32px; }
+  footer .foot-logo{ font-family: var(--font-display); font-size: 19px; }
+  footer .foot-tagline{ margin-top: 8px; font-size: 14px; color: var(--ink-soft); }
+  footer .foot-loc{ margin-top: 12px; }
+  footer .foot-cols{ display:flex; gap: 56px; }
+  footer .foot-col h4{ font-family: var(--font-body); font-size: 13px; font-weight:600; color: var(--ink); margin-bottom: 12px; }
+  footer .foot-col ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap: 9px; }
+  footer .foot-col a{ text-decoration:none; font-size: 14px; color: var(--ink-soft); }
+  footer .foot-col a:hover{ color: var(--ink); }
+  .foot-fine{ margin-top: 40px; padding-top: 22px; border-top: 1.5px solid var(--azul); font-size: 13px; color: var(--ink-soft); }
+
+  /* ---------- WhatsApp flotante ---------- */
+  .wa-float{
+    position: fixed; right: 24px; bottom: 24px; z-index: 50;
+    display:flex; align-items:center; gap: 10px;
+    background: var(--azul); color: var(--ink); text-decoration:none;
+    padding: 13px 20px; border-radius: 8px; font-size: 14.5px; font-weight: 600;
+    border: 1.5px solid var(--azul-mid);
+    box-shadow: 0 10px 30px -12px rgba(53,40,31,0.5);
+    transition: transform .15s ease, background .2s ease;
+  }
+  .wa-float:hover{ background: var(--azul-mid); transform: translateY(-2px); }
+  .wa-float svg{ width: 18px; height: 18px; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1080px){
+    .nav-links{ gap: 14px; }
+    .nav-links a{ font-size: 13px; }
+  }
+  @media (max-width: 1000px){
+    .steps-5{ grid-template-columns: repeat(3, 1fr); }
+    .articles-grid{ grid-template-columns: 1fr; }
+    .specialist{ grid-template-columns: 1fr; }
+    .specialist-visual{ width: 240px; margin: 0 auto; }
+    .diabetes-band{ grid-template-columns: 1fr; gap: 28px; }
+    .collab-grid{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px){
+    .hero .wrap{ grid-template-columns: 1fr; gap: 40px; }
+    .hero-visual{ order:-1; }
+    .hero h1{ max-width: none; }
+    .feature-grid, .paths, .offer-grid{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px){
+    .nav-links{ display:none; }
+    .nav-links.open{
+      display:flex; flex-direction:column; gap: 16px; align-items:flex-start; position:absolute; top:78px; left:0; right:0;
+      background: var(--canvas); padding: 22px 32px; border-bottom: 1.5px solid var(--azul-mid);
+    }
+    .nav-links.open a{ font-size: 15px; }
+    .nav-links.open a.nav-cta{ align-self:stretch; justify-content:center; }
+    .nav-toggle{ display:block; }
+    .nav-right .btn-ghost{ display:none; }
+  }
+  @media (max-width: 400px){
+    .logo-slot{ padding: 8px 12px; font-size: 11px; }
+  }
+  @media (max-width: 780px){
+    section{ padding: 60px 0; }
+    .hero{ padding: 40px 0 52px; }
+    .hero h1{ font-size: 36px; }
+    .section-head h2{ font-size: 27px; }
+    .steps-5{ grid-template-columns: repeat(2, 1fr); }
+    .workshop-banner{ flex-direction:column; align-items:flex-start; padding: 32px 26px; }
+    .newsletter .wrap{ flex-direction:column; align-items:flex-start; }
+    footer .wrap{ flex-direction:column; }
+    footer .foot-cols{ gap: 32px; }
+    .collab-card{ flex-direction:column; }
+    .cta-band h2{ font-size: 28px; }
+  }
+  @media (max-width: 560px){
+    .wrap{ padding: 0 20px; }
+    .path-card{ padding: 32px 24px; }
+  }
+</style>
+</head>
+<body data-view="inicio">
+
+<a class="wa-float" href="#" aria-label="Escríbenos por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 0 0-7.75 13.5L3 21l4.65-1.22A9 9 0 1 0 12 3Z"/><path d="M8.5 8.5c-.3 1 .2 2.2 1 3.2 1 1.2 2.1 1.8 3.2 2 .8.2 1.6-.3 1.8-.9" stroke-linecap="round"/></svg>
+  Escríbenos
+</a>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="siteNav">
+  <div class="wrap">
+    <a class="nav-logo" href="#inicio">
+      <span class="logo-slot">Espacio para logo</span>
+    </a>
+    <nav>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#inicio" data-nav="inicio">Inicio</a></li>
+        <li><a href="#mamas" data-nav="mamas">Mamás y niños</a></li>
+        <li><a href="#adultos" data-nav="adultos">Adultos</a></li>
+        <li><a href="#" class="nav-cta">Agenda tu valoración gratuita</a></li>
+      </ul>
+    </nav>
+    <div class="nav-right">
+      <a href="#" class="btn-ghost">WhatsApp</a>
+      <button class="nav-toggle" aria-label="Abrir menú" id="navToggle"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- =====================================================
+     PESTAÑA 1: MAMÁ INTUITIVA (marca, enfoque, sobre ella, colaboraciones)
+     ===================================================== -->
+<div class="view" data-view="inicio">
+
+  <section class="hero" id="inicio-hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow"><span class="dot d-azul"></span>Atención online · Acapulco y todo México</span>
+        <h1>Nutrición con enfoque <em>intuitivo</em>, para toda la familia.</h1>
+        <p class="lead">Mónica Lilian Nutrición acompaña a mamás, niños y adultos con alimentación intuitiva y educación en diabetes, dejando atrás las dietas restrictivas y la culpa.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary">Agenda tu valoración gratuita</a>
+          <a href="#caminos" class="btn btn-outline">Elige tu camino</a>
+        </div>
+        <p class="hero-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/></svg>
+          Gratuita, dura 20 minutos y se agenda directo aquí.
+        </p>
+      </div>
+      <div class="hero-visual">
+        <div class="dotgrid"></div>
+        <span class="float-dot" style="width:16px;height:16px;background:var(--durazno);top:4%;right:8%;"></span>
+        <span class="float-dot" style="width:14px;height:14px;background:var(--lavanda);bottom:10%;left:0;"></span>
+        <span class="float-dot" style="width:12px;height:12px;background:var(--rosa);bottom:34%;right:-1%;"></span>
+        <span class="float-dot" style="width:12px;height:12px;background:var(--crema);top:28%;left:-2%;"></span>
+        <div class="photo-frame">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+          <span>Foto pendiente</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-azul" id="caminos">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-durazno"></span><span class="dot d-lavanda"></span>Elige tu camino</span>
+        <h2>Dos espacios, según quién llega a la mesa.</h2>
+        <p class="lead">Es el mismo enfoque, pero cada espacio tiene su propio ritmo, sus propias herramientas y su propia forma de acompañar.</p>
+      </div>
+      <div class="paths">
+        <article class="path-card p-mamas">
+          <span class="chip chip-durazno">Mamá Intuitiva</span>
+          <h3>Mamás y niños</h3>
+          <p>Consultas y talleres para acompañar la alimentación de la familia, empezando por la mesa de casa.</p>
+          <ul class="path-list">
+            <li><span class="dot d-durazno"></span>Consulta para mamás</li>
+            <li><span class="dot d-crema"></span>Consulta para niños</li>
+            <li><span class="dot d-azul"></span>Talleres y blog</li>
+          </ul>
+          <a href="#mamas" class="btn btn-primary">Conocer Mamás y niños</a>
+        </article>
+        <article class="path-card p-adultos">
+          <span class="chip chip-lavanda">Alimentación intuitiva</span>
+          <h3>Adultos</h3>
+          <p>Acompañamiento individual para recuperar la confianza en tu cuerpo y tu relación con la comida.</p>
+          <ul class="path-list">
+            <li><span class="dot d-lavanda"></span>Consulta individual en línea</li>
+            <li><span class="dot d-azul"></span>Educación en diabetes</li>
+            <li><span class="dot d-rosa"></span>Talleres y blog</li>
+          </ul>
+          <a href="#adultos" class="btn btn-primary">Conocer Adultos</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="enfoque">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-azul"></span>El enfoque</span>
+        <h2>Una manera distinta de mirar la alimentación.</h2>
+        <p class="lead">La alimentación intuitiva es un enfoque que deja atrás las dietas, las básculas y las etiquetas de "bueno" o "malo" sobre la comida. En su lugar, aprendes a reconocer las señales de hambre y saciedad de tu cuerpo, a comer con permiso y sin culpa, y a construir hábitos que se sostienen porque nacen de ti, no de una regla externa.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="dots-row"><span class="dot d-azul"></span><span class="dot d-crema"></span></div>
+          <h3>Qué cambia</h3>
+          <p>Dejamos atrás las dietas restrictivas y las básculas. Trabajamos con herramientas prácticas que se quedan contigo, no reglas que se rompen a la primera semana.</p>
+        </div>
+        <div class="feature-card">
+          <div class="dots-row"><span class="dot d-durazno"></span><span class="dot d-azul"></span></div>
+          <h3>Cómo se vive</h3>
+          <p>Sesiones en línea, a tu ritmo, con seguimiento cercano. Hablamos de comida, pero también de culpa, ansiedad y de lo que pasa alrededor de la mesa.</p>
+        </div>
+        <div class="feature-card">
+          <div class="dots-row"><span class="dot d-lavanda"></span><span class="dot d-azul"></span></div>
+          <h3>A quién beneficia</h3>
+          <p>A mamás, niños y adultos que buscan una relación más tranquila con la comida, y a quienes conviven con diabetes y quieren entenderla sin miedo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-wash" id="sobre">
+    <div class="wrap">
+      <div class="specialist">
+        <div class="specialist-visual">
+          <div class="dotgrid"></div>
+          <span class="float-dot" style="width:14px;height:14px;background:var(--durazno);top:6%;right:6%;"></span>
+          <span class="float-dot" style="width:12px;height:12px;background:var(--lavanda);bottom:8%;left:2%;"></span>
+          <div class="photo-frame">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 4-6 7-6s5.5 2 7 6"/></svg>
+            <span>Foto pendiente</span>
+          </div>
+        </div>
+        <div>
+          <span class="eyebrow"><span class="dot d-azul"></span>Sobre la especialista</span>
+          <h2 style="font-size:32px;">Mónica Lilian [Apellido]</h2>
+          <p class="credential">Nutrióloga · Cédula profesional [XXXXXXX] · [X] años de experiencia</p>
+          <p class="bio">Primera nutrióloga en implementar el enfoque de alimentación intuitiva en Acapulco. Bio pendiente de redactar: trayectoria profesional, formación en alimentación intuitiva y educación en diabetes, y por qué eligió acompañar a mamás, niños y adultos con este enfoque.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="colaboraciones">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-lavanda"></span>Colaboraciones</span>
+      </div>
+      <div class="collab-grid">
+        <article class="collab-card">
+          <div class="collab-media">[Logo Roche]</div>
+          <div class="collab-body">
+            <span class="chip chip-azul">Speaker y educadora en diabetes</span>
+            <h3>Roche</h3>
+            <p>Colaboro como speaker y educadora en diabetes.</p>
+          </div>
+        </article>
+        <article class="collab-card">
+          <div class="collab-media">[Foto o logo pendiente]</div>
+          <div class="collab-body">
+            <span class="chip chip-lavanda">Prácticas profesionales</span>
+            <h3>Raquel Lobatón</h3>
+            <p>Pionera en alimentación intuitiva.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-azul" id="testimonios">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-rosa"></span>Testimonios</span>
+        <h2>Historias reales de acompañamiento.</h2>
+      </div>
+      <div class="testimonials-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 10h8M8 14h5M4 4h16v13H8l-4 4V4Z"/></svg>
+        <p>Aquí irán los testimonios reales de las pacientes, conforme los vayamos recopilando. <strong>No se inventan citas ni resultados</strong>: este espacio se llena solo con lo que las personas realmente compartan.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- =====================================================
+     PESTAÑA 2: MAMÁ INTUITIVA (PARA MAMÁS Y NIÑOS)
+     ===================================================== -->
+<div class="view" data-view="mamas">
+
+  <section class="hero" id="mamas-hero">
+    <div class="wrap">
+      <div>
+        <div class="section-brand">
+          <span class="dots-row"><span class="dot d-durazno"></span><span class="dot d-crema"></span></span>
+          <span>Mamá <em>Intuitiva</em></span>
+        </div>
+        <span class="eyebrow"><span class="dot d-durazno"></span>Consultas y talleres para mamás y niños</span>
+        <h1>Lo que pasa en la mesa de tu familia, también se puede <em>acompañar</em>.</h1>
+        <p class="lead">Consultas y talleres para mamás y para niños: sin básculas, sin reglas imposibles, con herramientas que sí se quedan en casa.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary">Agenda tu valoración gratuita</a>
+          <a href="#consultas-mamas" class="btn btn-outline">Ver consultas</a>
+        </div>
+        <p class="hero-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/></svg>
+          Gratuita, dura 20 minutos y se agenda directo aquí.
+        </p>
+      </div>
+      <div class="hero-visual">
+        <div class="dotgrid"></div>
+        <span class="float-dot" style="width:16px;height:16px;background:var(--azul-mid);top:4%;right:8%;"></span>
+        <span class="float-dot" style="width:14px;height:14px;background:var(--crema);bottom:10%;left:0;"></span>
+        <span class="float-dot" style="width:12px;height:12px;background:var(--lavanda);bottom:34%;right:-1%;"></span>
+        <span class="float-dot" style="width:12px;height:12px;background:var(--azul);top:28%;left:-2%;"></span>
+        <div class="photo-frame">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+          <span>Foto pendiente</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-wash">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-azul"></span>Tal vez llegaste aquí porque</span>
+        <h2>Te suena familiar alguna de estas.</h2>
+      </div>
+      <div class="reasons-list">
+        <div class="reason-item"><span class="dot d-rosa"></span><p>Estás cansada de contar calorías y sentir que nunca es suficiente.</p></div>
+        <div class="reason-item"><span class="dot d-durazno"></span><p>Has probado mil reglas y ninguna se sostiene en la vida real.</p></div>
+        <div class="reason-item"><span class="dot d-lavanda"></span><p>Quieres acompañar a tus hijos con la comida sin heredarles tus propias batallas.</p></div>
+        <div class="reason-item"><span class="dot d-azul"></span><p>Buscas herramientas prácticas, no otro plan que dura dos semanas.</p></div>
+        <div class="reason-item"><span class="dot d-crema"></span><p>Ya no sabes distinguir el hambre real de la ansiedad o la costumbre.</p></div>
+        <div class="reason-item"><span class="dot d-durazno"></span><p>Sueñas con una relación tranquila con la comida, para ti y para tu familia.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="consultas-mamas">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-durazno"></span>Consultas</span>
+        <h2>Un espacio para entender lo que pasa en tu mesa.</h2>
+        <p class="lead">Cada proceso empieza con una conversación, no con un diagnóstico. Hay un espacio para ti y otro para los más chicos de la casa.</p>
+      </div>
+      <div class="offer-grid">
+        <article class="offer-card">
+          <span class="chip chip-durazno">Para mamás</span>
+          <h3>Consulta para mamás</h3>
+          <p>Para ti, que cuidas la mesa de todos y a veces te olvidas de la tuya. Trabajamos tu relación con la comida y las herramientas para acompañar a tu familia.</p>
+          <ul class="path-list">
+            <li><span class="dot d-durazno"></span>Individual y en línea</li>
+            <li><span class="dot d-azul"></span>Sin básculas ni dietas</li>
+          </ul>
+        </article>
+        <article class="offer-card">
+          <span class="chip chip-azul">Para niños</span>
+          <h3>Consulta para niños</h3>
+          <p>Un acompañamiento pensado para los más chicos y sus familias, con calma y sin presión, para que la comida sea un momento tranquilo.</p>
+          <ul class="path-list">
+            <li><span class="dot d-crema"></span>En línea, con la familia presente</li>
+            <li><span class="dot d-azul"></span>Sin etiquetas ni castigos</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-azul" id="proceso-mamas">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-azul"></span>Cómo funciona</span>
+        <h2>Cinco pasos, sin prisa.</h2>
+      </div>
+      <div class="steps-5">
+        <div class="step-slim"><div class="step-num">01</div><h3>Primera conversación</h3><p>Platicamos de tu historia con la comida, sin juicios ni diagnósticos apresurados.</p></div>
+        <div class="step-slim"><div class="step-num">02</div><h3>Contexto</h3><p>Entendemos tu rutina, tu familia y lo que realmente pasa en tu día a día.</p></div>
+        <div class="step-slim"><div class="step-num">03</div><h3>Oportunidades</h3><p>Identificamos juntas dónde hay espacio para cambios reales y sostenibles.</p></div>
+        <div class="step-slim"><div class="step-num">04</div><h3>Herramientas</h3><p>Construimos estrategias prácticas, adaptadas a ti, no una dieta genérica.</p></div>
+        <div class="step-slim"><div class="step-num">05</div><h3>Acompañamiento</h3><p>Seguimiento cercano para sostener los cambios, no solo para iniciarlos.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="talleres-mamas">
+    <div class="wrap">
+      <div class="workshop-banner">
+        <div>
+          <span class="chip chip-durazno">Próximamente</span>
+          <h3>Talleres para mamás y niños.</h3>
+          <p>Espacios para aprender en familia, con calma y sin básculas. Muy pronto compartimos fechas y temas.</p>
+          <div class="workshop-modes">
+            <span class="chip chip-crema">Presenciales</span>
+            <span class="chip chip-canvas">Online</span>
+          </div>
+        </div>
+        <a href="#" class="btn btn-primary">Avísenme por WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-wash" id="blog-mamas">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-crema"></span>Blog</span>
+        <h2>Lo que estamos aprendiendo.</h2>
+      </div>
+      <div class="articles-grid">
+        <article class="article-main">
+          <div class="photo-frame">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+            <span>Foto pendiente</span>
+          </div>
+          <span class="chip chip-durazno">Mamás y niños</span>
+          <h3>Cómo hablarle a tus hijos de comida sin transmitirles tus propias reglas</h3>
+          <p>Un primer acercamiento a cómo construir una relación más tranquila con la comida en casa, empezando por lo que decimos (y lo que no) en la mesa.</p>
+          <a href="#" class="read-more">Leer más</a>
+        </article>
+        <div class="article-secondary-list">
+          <div class="article-secondary">
+            <div class="photo-frame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/></svg></div>
+            <div>
+              <span class="chip chip-crema">Mamás y niños</span>
+              <h4>Loncheras sin culpa: ideas prácticas para la semana</h4>
+              <p>Opciones sencillas para armar loncheras variadas, sin caer en la presión de que siempre se lo coman todo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <div class="dots-row center"><span class="dot d-rosa"></span><span class="dot d-lavanda"></span><span class="dot d-crema"></span><span class="dot d-durazno"></span><span class="dot d-azul"></span></div>
+      <h2>Empieza con 20 minutos, sin costo.</h2>
+      <p>Agenda tu valoración gratuita y platicamos sobre lo que pasa en tu mesa.</p>
+      <div class="hero-ctas"><a href="#" class="btn btn-primary">Agenda tu valoración gratuita</a></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- =====================================================
+     PESTAÑA 3: ADULTOS
+     ===================================================== -->
+<div class="view" data-view="adultos">
+
+  <section class="hero" id="adultos-hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow"><span class="dot d-lavanda"></span>Alimentación intuitiva · Adultos</span>
+        <h1>Vuelve a confiar en lo que tu cuerpo te <em>dice</em>.</h1>
+        <p class="lead">Acompañamiento individual en alimentación intuitiva para adultos: sin dietas, sin básculas y sin culpa, también si vives con diabetes.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary">Agenda tu valoración gratuita</a>
+          <a href="#acompanamiento-adultos" class="btn btn-outline">Cómo funciona</a>
+        </div>
+        <p class="hero-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/></svg>
+          Gratuita, dura 20 minutos y se agenda directo aquí.
+        </p>
+      </div>
+      <div class="hero-visual">
+        <div class="dotgrid"></div>
+        <span class="float-dot" style="width:16px;height:16px;background:var(--azul-mid);top:4%;right:8%;"></span>
+        <span class="float-dot" style="width:14px;height:14px;background:var(--rosa);bottom:10%;left:0;"></span>
+        <span class="float-dot" style="width:12px;height:12px;background:var(--crema);bottom:34%;right:-1%;"></span>
+        <span class="float-dot" style="width:12px;height:12px;background:var(--azul);top:28%;left:-2%;"></span>
+        <div class="photo-frame">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+          <span>Foto pendiente</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-wash">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-azul"></span>Tal vez llegaste aquí porque</span>
+        <h2>Te suena familiar alguna de estas.</h2>
+      </div>
+      <div class="reasons-list">
+        <div class="reason-item"><span class="dot d-lavanda"></span><p>Llevas años entrando y saliendo de dietas, y siempre terminas en el mismo lugar.</p></div>
+        <div class="reason-item"><span class="dot d-azul"></span><p>Comes por ansiedad, cansancio o aburrimiento y después llega la culpa.</p></div>
+        <div class="reason-item"><span class="dot d-rosa"></span><p>La báscula decide cómo te sientes el resto del día.</p></div>
+        <div class="reason-item"><span class="dot d-crema"></span><p>Vives con diabetes y sientes que todo se reduce a prohibiciones.</p></div>
+        <div class="reason-item"><span class="dot d-durazno"></span><p>Quieres comer con más calma y disfrutar sin estar contando.</p></div>
+        <div class="reason-item"><span class="dot d-azul"></span><p>Te gustaría dejar de pensar en comida todo el día.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="acompanamiento-adultos">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-lavanda"></span>Consulta y acompañamiento</span>
+        <h2>Un proceso individual, a tu ritmo.</h2>
+        <p class="lead">Sesiones en línea, uno a uno. Empezamos con una conversación y construimos juntas herramientas que puedas usar en tu vida diaria.</p>
+      </div>
+      <div class="steps-5">
+        <div class="step-slim"><div class="step-num">01</div><h3>Primera conversación</h3><p>Platicamos de tu historia con la comida y de lo que te trajo hasta aquí.</p></div>
+        <div class="step-slim"><div class="step-num">02</div><h3>Contexto</h3><p>Entendemos tu rutina, tu trabajo y tus emociones alrededor de la comida.</p></div>
+        <div class="step-slim"><div class="step-num">03</div><h3>Oportunidades</h3><p>Vemos dónde hay espacio para cambios que sí puedas sostener.</p></div>
+        <div class="step-slim"><div class="step-num">04</div><h3>Herramientas</h3><p>Practicamos estrategias concretas para el hambre, la saciedad y las emociones.</p></div>
+        <div class="step-slim"><div class="step-num">05</div><h3>Acompañamiento</h3><p>Seguimiento cercano para que los cambios se queden.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-azul" id="diabetes">
+    <div class="wrap">
+      <div class="diabetes-band">
+        <div class="dots-big" aria-hidden="true">
+          <span class="dot d-azul"></span><span class="dot d-crema"></span><span class="dot d-lavanda"></span><span class="dot d-durazno"></span><span class="dot d-rosa"></span>
+          <span class="dot d-crema"></span><span class="dot d-azul"></span><span class="dot d-durazno"></span><span class="dot d-rosa"></span><span class="dot d-lavanda"></span>
+          <span class="dot d-lavanda"></span><span class="dot d-durazno"></span><span class="dot d-azul"></span><span class="dot d-crema"></span><span class="dot d-azul"></span>
+        </div>
+        <div>
+          <span class="eyebrow"><span class="dot d-azul"></span>Educación en diabetes</span>
+          <h2>Si vives con diabetes, también hay otra forma de acompañarla.</h2>
+          <p>Educación en diabetes desde el enfoque intuitivo: entender tu cuerpo, tus números y tus comidas sin miedo y sin castigo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="talleres-adultos">
+    <div class="wrap">
+      <div class="workshop-banner">
+        <div>
+          <span class="chip chip-lavanda">Próximamente</span>
+          <h3>Talleres para adultos.</h3>
+          <p>Espacios grupales para aprender alimentación intuitiva y educación en diabetes, con calma y sin básculas.</p>
+          <div class="workshop-modes">
+            <span class="chip chip-crema">Presenciales</span>
+            <span class="chip chip-canvas">Online</span>
+          </div>
+        </div>
+        <a href="#" class="btn btn-primary">Avísenme por WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-wash" id="blog-adultos">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-lavanda"></span>Blog</span>
+        <h2>Lo que estamos aprendiendo.</h2>
+      </div>
+      <div class="articles-grid">
+        <article class="article-main">
+          <div class="photo-frame">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+            <span>Foto pendiente</span>
+          </div>
+          <span class="chip chip-lavanda">Adultos</span>
+          <h3>Hambre real vs. hambre emocional: cómo distinguirlas</h3>
+          <p>Señales prácticas para empezar a diferenciarlas, sin culpa de por medio.</p>
+          <a href="#" class="read-more">Leer más</a>
+        </article>
+        <div class="article-secondary-list">
+          <div class="article-secondary">
+            <div class="photo-frame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/></svg></div>
+            <div>
+              <span class="chip chip-azul">Adultos · Diabetes</span>
+              <h4>Diabetes y alimentación: mitos que vale la pena soltar</h4>
+              <p>Ideas comunes sobre diabetes y comida que suelen hacer más daño que bien.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <div class="dots-row center"><span class="dot d-lavanda"></span><span class="dot d-azul"></span><span class="dot d-crema"></span><span class="dot d-rosa"></span><span class="dot d-durazno"></span></div>
+      <h2>Empieza con 20 minutos, sin costo.</h2>
+      <p>Agenda tu valoración gratuita y platicamos sobre cómo te gustaría vivir la comida.</p>
+      <div class="hero-ctas"><a href="#" class="btn btn-primary">Agenda tu valoración gratuita</a></div>
+    </div>
+  </section>
+
+</div>
+
+</main>
+
+<!-- ============ GLOBAL: NEWSLETTER, REDES, FOOTER ============ -->
+<section class="newsletter">
+  <div class="wrap">
+    <div>
+      <div class="dots-row"><span class="dot d-azul"></span><span class="dot d-durazno"></span><span class="dot d-lavanda"></span></div>
+      <h2>Recursos y novedades, directo a tu correo.</h2>
+      <p>Un correo ocasional con ideas prácticas sobre alimentación intuitiva, diabetes y crianza. Sin spam.</p>
+    </div>
+    <form class="newsletter-form" onsubmit="return false;">
+      <input type="email" placeholder="Tu correo electrónico" aria-label="Correo electrónico">
+      <button type="submit" class="btn btn-primary">Suscribirme</button>
+    </form>
+  </div>
+</section>
+
+<section style="padding: 52px 0;">
+  <div class="wrap">
+    <div class="social-row">
+      <a class="social-link" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+        Instagram · @mamaintuitiva_
+      </a>
+      <a class="social-link" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 8h-2a2 2 0 0 0-2 2v2H9v3h2v7h3v-7h2.2l.8-3H14v-1.5c0-.6.4-1 1-1h1.5V8Z"/></svg>
+        Facebook
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="foot-logo">Mónica Lilian Nutrición</div>
+      <div class="foot-tagline">Mamá Intuitiva · Alimentación intuitiva y educación en diabetes, en línea.</div>
+      <div class="dots-row foot-loc"><span class="dot d-durazno"></span><span class="dot d-azul"></span><span class="dot d-lavanda"></span><span style="font-size:13px;color:var(--ink-soft);margin-left:4px;">Acapulco · Online</span></div>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h4>Sitio</h4>
+        <ul>
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#mamas">Mamás y niños</a></li>
+          <li><a href="#adultos">Adultos</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="#">WhatsApp</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="foot-fine">© 2026 Mónica Lilian Nutrición · Mamá Intuitiva. Cédula profesional [XXXXXXX]. Consultas en línea para Acapulco y todo México.</div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var VIEWS = ['inicio','mamas','adultos'];
+    var nav = document.getElementById('siteNav');
+    var navLinks = document.getElementById('navLinks');
+    var toggle = document.getElementById('navToggle');
+
+    function setView(name){
+      document.body.setAttribute('data-view', name);
+      var all = document.querySelectorAll('.view');
+      for(var i=0;i<all.length;i++){
+        all[i].classList.toggle('is-active', all[i].getAttribute('data-view') === name);
+      }
+    }
+
+    function setCurrent(key){
+      var links = navLinks.querySelectorAll('a[data-nav]');
+      for(var i=0;i<links.length;i++){
+        if(links[i].getAttribute('data-nav') === key){ links[i].setAttribute('aria-current','page'); }
+        else { links[i].removeAttribute('aria-current'); }
+      }
+    }
+
+    function route(){
+      var h = (location.hash || '').replace('#','');
+      var view = 'inicio', target = null, key = 'inicio';
+      if(VIEWS.indexOf(h) > -1){ view = h; key = h; }
+      else if(h){
+        target = document.getElementById(h);
+        if(target){
+          var host = target.closest('.view');
+          view = host ? host.getAttribute('data-view') : 'inicio';
+          key = view;
+        }
+      }
+      setView(view);
+      setCurrent(key);
+      navLinks.classList.remove('open');
+      if(target){ setTimeout(function(){ target.scrollIntoView(); }, 0); }
+      else { window.scrollTo(0,0); }
+    }
+
+    window.addEventListener('hashchange', route);
+    route();
+
+    window.addEventListener('scroll', function(){
+      nav.classList.toggle('is-scrolled', window.scrollY > 12);
+    });
+
+    toggle.addEventListener('click', function(){ navLinks.classList.toggle('open'); });
+
+    // Enlaces placeholder (href="#"): no mover la pagina ni disparar la ruta
+    document.addEventListener('click', function(e){
+      var a = e.target.closest ? e.target.closest('a') : null;
+      if(a && a.getAttribute('href') === '#'){ e.preventDefault(); }
+    });
+  })();
+</script>
+
+</body>
+</html>
