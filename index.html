@@ -188,6 +188,8 @@
     gap: 10px; color: var(--ink-soft); font-size: 13px; font-weight: 500; text-align:center; padding: 16px;
   }
   .photo-frame svg{ width: 30px; height: 30px; opacity: .55; }
+  .photo-frame.has-photo{ border-style: solid; border-color: var(--azul-mid); padding: 0; overflow: hidden; }
+  .photo-frame.has-photo img{ width: 100%; height: 100%; object-fit: cover; display: block; }
 
   /* ---------- Hero ---------- */
   .hero{ padding: 64px 0 76px; }
@@ -199,6 +201,15 @@
   .hero-note svg{ width: 16px; height: 16px; color: var(--azul-deep); flex-shrink:0; }
   .hero-visual{ position: relative; padding: 14px; }
   .hero-visual .photo-frame{ aspect-ratio: 4/5; max-width: 400px; margin: 0 auto; }
+
+  /* ---------- Hero variant: mirror (mamás y niños) ---------- */
+  .hero-mirror .wrap{ grid-template-columns: 0.9fr 1.1fr; }
+  .hero-mirror .hero-visual{ order: -1; }
+
+  /* ---------- Hero variant: round photo + chips (adultos) ---------- */
+  .hero-chips{ display:flex; gap: 10px; flex-wrap:wrap; margin-top: 20px; }
+  .hero-visual.is-round .photo-frame{ aspect-ratio: 1/1; max-width: 320px; border-radius: 50%; }
+  .hero-visual.is-round .photo-frame.has-photo{ border-width: 3px; }
 
   /* ---------- Section brand (wordmark del hero de cada vertiente) ---------- */
   .section-brand{
@@ -242,6 +253,12 @@
   .reason-item .dot{ width: 12px; height: 12px; margin-top: 8px; }
   .reason-item p{ font-size: 19px; line-height: 1.5; color: var(--ink); }
 
+  /* ---------- Reasons grid (adultos variant) ---------- */
+  .reasons-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 900px; }
+  .reasons-grid .reason-item{ border: 1.5px solid var(--lavanda); border-radius: var(--radius-md); background: var(--canvas); padding: 24px 26px; }
+  .reasons-grid .reason-item:last-child{ border: 1.5px solid var(--lavanda); }
+  .reasons-grid .reason-item p{ font-size: 16.5px; }
+
   /* ---------- Two-col offer cards (consultas) ---------- */
   .offer-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
   .offer-card{ background: var(--canvas); border: 1.5px solid var(--azul-mid); border-radius: var(--radius-md); padding: 34px 32px; }
@@ -265,6 +282,23 @@
   .step-slim:nth-child(5) .step-num{ background: var(--azul-mid); }
   .step-slim h3{ font-size: 17px; margin-bottom: 8px; line-height:1.3; }
   .step-slim p{ font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+
+  /* ---------- Steps timeline (adultos variant) ---------- */
+  .steps-timeline{ display:flex; flex-direction:column; max-width: 660px; }
+  .step-line{ display:flex; gap: 22px; align-items:flex-start; padding: 24px 0; border-top: 1.5px solid var(--lavanda); }
+  .step-line:last-child{ border-bottom: 1.5px solid var(--lavanda); }
+  .step-line .step-num{
+    width: 38px; height: 38px; border-radius: 50%; color: var(--ink); flex-shrink:0;
+    font-size: 13px; font-weight: 700; display:flex; align-items:center; justify-content:center;
+    box-shadow: inset 0 0 0 1px rgba(53,40,31,0.12);
+  }
+  .step-line:nth-child(1) .step-num{ background: var(--lavanda); }
+  .step-line:nth-child(2) .step-num{ background: var(--azul); }
+  .step-line:nth-child(3) .step-num{ background: var(--crema); }
+  .step-line:nth-child(4) .step-num{ background: var(--rosa); }
+  .step-line:nth-child(5) .step-num{ background: var(--durazno); }
+  .step-line h3{ font-size: 18px; margin-bottom: 6px; }
+  .step-line p{ font-size: 14.5px; color: var(--ink-soft); line-height:1.55; max-width: 48ch; }
 
   /* ---------- Talleres ---------- */
   .workshop-banner{
@@ -305,6 +339,11 @@
   .article-secondary h4{ font-size: 17px; line-height:1.35; margin: 8px 0 6px; }
   .article-secondary p{ font-size: 13.5px; color: var(--ink-soft); line-height:1.5; }
   .read-more{ font-size: 14px; font-weight: 600; color: var(--ink); text-decoration:none; border-bottom: 2px solid var(--azul-mid); display:inline-block; margin-top: 14px; }
+
+  /* ---------- Articles equal grid (adultos variant) ---------- */
+  .articles-grid-equal{ display:grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .articles-grid-equal .article-main h3{ font-size: 22px; }
+  .articles-grid-equal .article-main p{ max-width: none; }
 
   /* ---------- Collabs ---------- */
   .collab-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
@@ -392,7 +431,7 @@
   }
   @media (max-width: 1000px){
     .steps-5{ grid-template-columns: repeat(3, 1fr); }
-    .articles-grid{ grid-template-columns: 1fr; }
+    .articles-grid, .articles-grid-equal{ grid-template-columns: 1fr; }
     .specialist{ grid-template-columns: 1fr; }
     .specialist-visual{ width: 240px; margin: 0 auto; }
     .diabetes-band{ grid-template-columns: 1fr; gap: 28px; }
@@ -402,7 +441,20 @@
     .hero .wrap{ grid-template-columns: 1fr; gap: 40px; }
     .hero-visual{ order:-1; }
     .hero h1{ max-width: none; }
-    .feature-grid, .paths, .offer-grid{ grid-template-columns: 1fr; }
+    .feature-grid, .paths, .offer-grid, .reasons-grid{ grid-template-columns: 1fr; }
+
+    /* Mamás y niños: en móvil, foto banner de ancho completo en vez de tarjeta enmarcada,
+       para que siga distinguiéndose de Adultos aunque el layout se apile en una columna. */
+    .hero-mirror{ overflow: hidden; }
+    .hero-mirror .hero-visual{
+      width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+      padding: 0;
+    }
+    .hero-mirror .hero-visual .dotgrid,
+    .hero-mirror .hero-visual .float-dot{ display: none; }
+    .hero-mirror .hero-visual .photo-frame{
+      aspect-ratio: 16/10; max-width: none; border-radius: 0; border-width: 0 0 1.5px 0;
+    }
   }
   @media (max-width: 900px){
     .nav-links{ display:none; }
@@ -422,6 +474,8 @@
     section{ padding: 60px 0; }
     .hero{ padding: 40px 0 52px; }
     .hero h1{ font-size: 36px; }
+    .wa-float{ right: 16px; bottom: 16px; padding: 13px; border-radius: 50%; }
+    .wa-float-label{ display:none; }
     .section-head h2{ font-size: 27px; }
     .steps-5{ grid-template-columns: repeat(2, 1fr); }
     .workshop-banner{ flex-direction:column; align-items:flex-start; padding: 32px 26px; }
@@ -441,7 +495,7 @@
 
 <a class="wa-float" href="#" aria-label="Escríbenos por WhatsApp">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 0 0-7.75 13.5L3 21l4.65-1.22A9 9 0 1 0 12 3Z"/><path d="M8.5 8.5c-.3 1 .2 2.2 1 3.2 1 1.2 2.1 1.8 3.2 2 .8.2 1.6-.3 1.8-.9" stroke-linecap="round"/></svg>
-  Escríbenos
+  <span class="wa-float-label">Escríbenos</span>
 </a>
 
 <!-- ============ NAV ============ -->
@@ -478,6 +532,11 @@
         <span class="eyebrow"><span class="dot d-azul"></span>Atención online · Acapulco y todo México</span>
         <h1>Nutrición con enfoque <em>intuitivo</em>, para toda la familia.</h1>
         <p class="lead">Mónica Lilian Nutrición acompaña a mamás, niños y adultos con alimentación intuitiva y educación en diabetes, dejando atrás las dietas restrictivas y la culpa.</p>
+        <div class="hero-chips">
+          <span class="chip chip-durazno">Sin dietas</span>
+          <span class="chip chip-azul">Sin básculas</span>
+          <span class="chip chip-lavanda">En familia</span>
+        </div>
         <div class="hero-ctas">
           <a href="#" class="btn btn-primary">Agenda tu valoración gratuita</a>
           <a href="#caminos" class="btn btn-outline">Elige tu camino</a>
@@ -487,15 +546,14 @@
           Gratuita, dura 20 minutos y se agenda directo aquí.
         </p>
       </div>
-      <div class="hero-visual">
+      <div class="hero-visual is-round">
         <div class="dotgrid"></div>
         <span class="float-dot" style="width:16px;height:16px;background:var(--durazno);top:4%;right:8%;"></span>
         <span class="float-dot" style="width:14px;height:14px;background:var(--lavanda);bottom:10%;left:0;"></span>
         <span class="float-dot" style="width:12px;height:12px;background:var(--rosa);bottom:34%;right:-1%;"></span>
         <span class="float-dot" style="width:12px;height:12px;background:var(--crema);top:28%;left:-2%;"></span>
-        <div class="photo-frame">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
-          <span>Foto pendiente</span>
+        <div class="photo-frame has-photo">
+          <img src="https://images.pexels.com/photos/6212564/pexels-photo-6212564.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Mamá sonriendo mientras ve a sus hijos desayunar en la cocina" loading="lazy">
         </div>
       </div>
     </div>
@@ -630,7 +688,7 @@
      ===================================================== -->
 <div class="view" data-view="mamas">
 
-  <section class="hero" id="mamas-hero">
+  <section class="hero hero-mirror" id="mamas-hero">
     <div class="wrap">
       <div>
         <div class="section-brand">
@@ -655,9 +713,8 @@
         <span class="float-dot" style="width:14px;height:14px;background:var(--crema);bottom:10%;left:0;"></span>
         <span class="float-dot" style="width:12px;height:12px;background:var(--lavanda);bottom:34%;right:-1%;"></span>
         <span class="float-dot" style="width:12px;height:12px;background:var(--azul);top:28%;left:-2%;"></span>
-        <div class="photo-frame">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
-          <span>Foto pendiente</span>
+        <div class="photo-frame has-photo">
+          <img src="https://images.pexels.com/photos/5093993/pexels-photo-5093993.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Mamá cocinando con su hija en la cocina" loading="lazy">
         </div>
       </div>
     </div>
@@ -751,9 +808,8 @@
       </div>
       <div class="articles-grid">
         <article class="article-main">
-          <div class="photo-frame">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
-            <span>Foto pendiente</span>
+          <div class="photo-frame has-photo">
+            <img src="https://images.pexels.com/photos/7078729/pexels-photo-7078729.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Mamá conversando con su hija" loading="lazy">
           </div>
           <span class="chip chip-durazno">Mamás y niños</span>
           <h3>Cómo hablarle a tus hijos de comida sin transmitirles tus propias reglas</h3>
@@ -762,7 +818,7 @@
         </article>
         <div class="article-secondary-list">
           <div class="article-secondary">
-            <div class="photo-frame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/></svg></div>
+            <div class="photo-frame has-photo"><img src="https://images.pexels.com/photos/5852279/pexels-photo-5852279.jpeg?auto=compress&cs=tinysrgb&w=300" alt="Lonchera saludable con frutas" loading="lazy"></div>
             <div>
               <span class="chip chip-crema">Mamás y niños</span>
               <h4>Loncheras sin culpa: ideas prácticas para la semana</h4>
@@ -811,44 +867,9 @@
         <span class="float-dot" style="width:14px;height:14px;background:var(--rosa);bottom:10%;left:0;"></span>
         <span class="float-dot" style="width:12px;height:12px;background:var(--crema);bottom:34%;right:-1%;"></span>
         <span class="float-dot" style="width:12px;height:12px;background:var(--azul);top:28%;left:-2%;"></span>
-        <div class="photo-frame">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
-          <span>Foto pendiente</span>
+        <div class="photo-frame has-photo">
+          <img src="https://images.pexels.com/photos/5216811/pexels-photo-5216811.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Mujer disfrutando su comida con calma" loading="lazy">
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="on-wash">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow"><span class="dot d-azul"></span>Tal vez llegaste aquí porque</span>
-        <h2>Te suena familiar alguna de estas.</h2>
-      </div>
-      <div class="reasons-list">
-        <div class="reason-item"><span class="dot d-lavanda"></span><p>Llevas años entrando y saliendo de dietas, y siempre terminas en el mismo lugar.</p></div>
-        <div class="reason-item"><span class="dot d-azul"></span><p>Comes por ansiedad, cansancio o aburrimiento y después llega la culpa.</p></div>
-        <div class="reason-item"><span class="dot d-rosa"></span><p>La báscula decide cómo te sientes el resto del día.</p></div>
-        <div class="reason-item"><span class="dot d-crema"></span><p>Vives con diabetes y sientes que todo se reduce a prohibiciones.</p></div>
-        <div class="reason-item"><span class="dot d-durazno"></span><p>Quieres comer con más calma y disfrutar sin estar contando.</p></div>
-        <div class="reason-item"><span class="dot d-azul"></span><p>Te gustaría dejar de pensar en comida todo el día.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="acompanamiento-adultos">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow"><span class="dot d-lavanda"></span>Consulta y acompañamiento</span>
-        <h2>Un proceso individual, a tu ritmo.</h2>
-        <p class="lead">Sesiones en línea, uno a uno. Empezamos con una conversación y construimos juntas herramientas que puedas usar en tu vida diaria.</p>
-      </div>
-      <div class="steps-5">
-        <div class="step-slim"><div class="step-num">01</div><h3>Primera conversación</h3><p>Platicamos de tu historia con la comida y de lo que te trajo hasta aquí.</p></div>
-        <div class="step-slim"><div class="step-num">02</div><h3>Contexto</h3><p>Entendemos tu rutina, tu trabajo y tus emociones alrededor de la comida.</p></div>
-        <div class="step-slim"><div class="step-num">03</div><h3>Oportunidades</h3><p>Vemos dónde hay espacio para cambios que sí puedas sostener.</p></div>
-        <div class="step-slim"><div class="step-num">04</div><h3>Herramientas</h3><p>Practicamos estrategias concretas para el hambre, la saciedad y las emociones.</p></div>
-        <div class="step-slim"><div class="step-num">05</div><h3>Acompañamiento</h3><p>Seguimiento cercano para que los cambios se queden.</p></div>
       </div>
     </div>
   </section>
@@ -866,6 +887,40 @@
           <h2>Si vives con diabetes, también hay otra forma de acompañarla.</h2>
           <p>Educación en diabetes desde el enfoque intuitivo: entender tu cuerpo, tus números y tus comidas sin miedo y sin castigo.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-wash">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-azul"></span>Tal vez llegaste aquí porque</span>
+        <h2>Te suena familiar alguna de estas.</h2>
+      </div>
+      <div class="reasons-grid">
+        <div class="reason-item"><span class="dot d-lavanda"></span><p>Llevas años entrando y saliendo de dietas, y siempre terminas en el mismo lugar.</p></div>
+        <div class="reason-item"><span class="dot d-azul"></span><p>Comes por ansiedad, cansancio o aburrimiento y después llega la culpa.</p></div>
+        <div class="reason-item"><span class="dot d-rosa"></span><p>La báscula decide cómo te sientes el resto del día.</p></div>
+        <div class="reason-item"><span class="dot d-crema"></span><p>Vives con diabetes y sientes que todo se reduce a prohibiciones.</p></div>
+        <div class="reason-item"><span class="dot d-durazno"></span><p>Quieres comer con más calma y disfrutar sin estar contando.</p></div>
+        <div class="reason-item"><span class="dot d-azul"></span><p>Te gustaría dejar de pensar en comida todo el día.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="acompanamiento-adultos">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><span class="dot d-lavanda"></span>Consulta y acompañamiento</span>
+        <h2>Un proceso individual, a tu ritmo.</h2>
+        <p class="lead">Sesiones en línea, uno a uno. Empezamos con una conversación y construimos juntas herramientas que puedas usar en tu vida diaria.</p>
+      </div>
+      <div class="steps-timeline">
+        <div class="step-line"><div class="step-num">01</div><div><h3>Primera conversación</h3><p>Platicamos de tu historia con la comida y de lo que te trajo hasta aquí.</p></div></div>
+        <div class="step-line"><div class="step-num">02</div><div><h3>Contexto</h3><p>Entendemos tu rutina, tu trabajo y tus emociones alrededor de la comida.</p></div></div>
+        <div class="step-line"><div class="step-num">03</div><div><h3>Oportunidades</h3><p>Vemos dónde hay espacio para cambios que sí puedas sostener.</p></div></div>
+        <div class="step-line"><div class="step-num">04</div><div><h3>Herramientas</h3><p>Practicamos estrategias concretas para el hambre, la saciedad y las emociones.</p></div></div>
+        <div class="step-line"><div class="step-num">05</div><div><h3>Acompañamiento</h3><p>Seguimiento cercano para que los cambios se queden.</p></div></div>
       </div>
     </div>
   </section>
@@ -893,27 +948,25 @@
         <span class="eyebrow"><span class="dot d-lavanda"></span>Blog</span>
         <h2>Lo que estamos aprendiendo.</h2>
       </div>
-      <div class="articles-grid">
+      <div class="articles-grid-equal">
         <article class="article-main">
-          <div class="photo-frame">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.5"/></svg>
-            <span>Foto pendiente</span>
+          <div class="photo-frame has-photo">
+            <img src="https://images.pexels.com/photos/17568749/pexels-photo-17568749.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Mujer con las manos sobre un plato de comida, en pausa antes de comer" loading="lazy">
           </div>
           <span class="chip chip-lavanda">Adultos</span>
           <h3>Hambre real vs. hambre emocional: cómo distinguirlas</h3>
           <p>Señales prácticas para empezar a diferenciarlas, sin culpa de por medio.</p>
           <a href="#" class="read-more">Leer más</a>
         </article>
-        <div class="article-secondary-list">
-          <div class="article-secondary">
-            <div class="photo-frame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/></svg></div>
-            <div>
-              <span class="chip chip-azul">Adultos · Diabetes</span>
-              <h4>Diabetes y alimentación: mitos que vale la pena soltar</h4>
-              <p>Ideas comunes sobre diabetes y comida que suelen hacer más daño que bien.</p>
-            </div>
+        <article class="article-main">
+          <div class="photo-frame has-photo">
+            <img src="https://images.pexels.com/photos/5469040/pexels-photo-5469040.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Medidor de glucosa junto a alimentos" loading="lazy">
           </div>
-        </div>
+          <span class="chip chip-azul">Adultos · Diabetes</span>
+          <h3>Diabetes y alimentación: mitos que vale la pena soltar</h3>
+          <p>Ideas comunes sobre diabetes y comida que suelen hacer más daño que bien.</p>
+          <a href="#" class="read-more">Leer más</a>
+        </article>
       </div>
     </div>
   </section>
